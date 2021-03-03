@@ -13,7 +13,7 @@ i = torch.unsqueeze(i, 0)
 m = torch.nn.Conv2d(1,3,3,padding=0)
 print(m.weight)
 """
-m.weight.shape = torch.Size([3, 1, 3, 3])  # 注意这个为了方便计算，out通道是排在最前面的。并且后三个通道的size等于传入数据不算batch的后三维size。
+m.weight.shape = torch.Size([3, 1, 3, 3])  # 注意这个为了方便计算，out通道是排在最前面的。决定了一个样本的输入通道是1，经过这个算子后输出通道为3。输出的wh由输入的wh和核共同决定。
 tensor([[[[ 0.1070,  0.3077,  0.0875],
           [-0.2223, -0.2802, -0.2175],
           [-0.2160,  0.2391,  0.2871]]],
@@ -38,7 +38,7 @@ tensor([ 0.1321, -0.2557,  0.1825], requires_grad=True)
 o=m(i)
 print(o)
 """
-o.shape = torch.Size([1, 3, 1, 1])
+o.shape = torch.Size([1, 3, 1, 1])  # 输出的n(batch)始终等于输入。c输出通道数是由卷积核Conv2D来决定的。
 tensor([[[[0.2246]],
 
          [[0.0745]],
