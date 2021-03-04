@@ -25,7 +25,80 @@ def getFiles(dir, suff=''):
     getFlist(dir, suff)
     return flist
 
+# 批量删除带特定名称的文件。
+# 删除名字中带有pos_str且不带有neg_str的
+def del_files(dir, pos_str='_____', neg_str='______'):
+    file_lists = getFiles(dir)
+    
+    for i in range(len(file_lists)):
+        if file_lists[i].find(pos_str) >= 0 and file_lists[i].find(neg_str) < 0:
+            os.remove(file_lists[i])
 
+# 音频数据增广，加噪声
+# 正样本叠加噪声
+"""
+source_dir & source_suff: 源音频文件及过滤音频用的字符串
+noise_dir  & noise_suff : 噪声文件及过滤噪声用的字符串
+dst_dir: 存放增广后的文件
+SR： 采样率
+times: 进行几倍的扩展
+
+说明： 噪声样本长度必须大于源音频长度，否则就跳过生成。
+"""
+def augment_add_noise(source_dir, noise_dir, source_suff='_IAR_',dst_dir='', noise_suff='nsout', SR=16000, times=1):
+    # step 0: import
+    import librosa
+    import os
+    import numpy as np
+    import wave
+    import random
+    
+    # step 1: 获取文件列表
+    audio_path_list = getFiles(source_dir, source_suff)
+    noise_path_list = getFiles(noise_dir, noise_suff)
+    if len(audio_path_list) == 0 or len(noise_path_list) == 0:
+        print("error!! no files")
+        exit(0)
+    
+    # step 2: 读取所有噪声到 all_noise_wav (list)
+    all_noise_wav = []
+    for i in range(len(noise_path_list)):
+        data_tmp, _ = librosa.load(noise_path_list[i], sr=SR, mono=True)
+        all_noise_wav.append(data_tmp.copy())
+        
+    # step 3: 为每个样本生成标注
+    for i in range(times):                              # i: 轮数编号
+        for j in range(len(audio_path_list)):           # j: 正样本编号
+            # step 3.1: 读语音
+            x, _ = librosa.load(audio_path_list[j], sr=SR, mono=True)
+        
+            # step 3.2: 生成随机数：随机噪声，随机索引，随机音量
+            rd_noise_idx  = random.randint(0, len(all_noise_wav) - 1)
+            if all_noise_wav[rd_noise_idx].shape[0] < x.shape[0]:
+                continue
+            rd_idx        = random.randint(0, all_noise_wav[rd_noise_idx].shape[0] - x.shape[0] - 1)
+            rd_vol        = (float)(random.randint(6, 20)) / 100
+    
+            # step 3.3: 叠加
+            x = x * rd_vol  + all_noise_wav[rd_noise_idx][rd_idx : rd_idx + x.shape[0]]
+            x = x * 32768
+            
+            # step 3.4: 写入文件
+            (filepath,tempfilename) = os.path.split(audio_path_list[j])
+            (filename,extension) = os.path.splitext(tempfilename)
+            dst_name = tempfilename + "_rnd_" + str(rd_noise_idx) + "_" + str(rd_idx) + "_" + str((int)(rd_vol * 100)) + extension
+            dst_path = os.path.join(dst_dir, dst_name)
+            
+            x = x.astype(np.short)
+            f = wave.open(dst_path, "wb")
+            f.setnchannels(1)
+            f.setsampwidth(2)
+            f.setframerate(SR)
+            # 将wav_data转换为二进制数据写入文件
+            f.writeframes(x.tostring())
+            f.close()
+            
+            
 # 切分文件，为了令文件名不冲突，可传入一个name_pref表示编号
 # 不补0。最后一段不要了
 def split_audio(audio_path, dst_dir, dur=2, name_pref='', SR=16000, padding=False):
