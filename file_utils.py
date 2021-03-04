@@ -6,8 +6,9 @@ Created on 2021.02.04
 @author: chenyingbo
 """
 
-# 递归获取文件列表，可选后缀。返回完整路径列表
-def getFiles(dir, suff='wav'):
+# 递归获取文件列表，可选后缀。返回完整路径列表。如果suff为空则返回全部文件。
+# 由于'1234'.find('')=0，所以getFiles不传入参数时默认返回所有文件。
+def getFiles(dir, suff=''):
     flist = []
     def getFlist(path, p2_suff):
         lsdir = os.listdir(path)
