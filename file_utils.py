@@ -6,6 +6,16 @@ Created on 2021.02.04
 @author: chenyingbo
 """
 
+# ------------------------------------------------------------------  intfs  ----------------------------------------------------------------------- #
+def getFiles(dir, suff='')                                                                                              # 获取文件列表
+def files_del(dir, pos_str='_____', neg_str='______')                                                                   # 批量删除文件
+def augment_add_noise(source_dir, noise_dir, source_suff='_IAR_',dst_dir='', noise_suff='nsout', SR=16000, times=1)     # 数据加噪声
+def micarray_intf(dir)                                                                                                  # 一个处理多通道文件的示例
+def split_audio(audio_path, dst_dir, dur=2, name_pref='', SR=16000, padding=False)                                      # 分割音频
+
+# ------------------------------------------------------------------  funcs  ----------------------------------------------------------------------- #
+
+
 # 递归获取文件列表，可选后缀。返回完整路径列表。如果suff为空则返回全部文件。
 # 由于'1234'.find('')=0，所以getFiles不传入参数时默认返回所有文件。
 def getFiles(dir, suff=''):
@@ -27,7 +37,7 @@ def getFiles(dir, suff=''):
 
 # 批量删除带特定名称的文件。
 # 删除名字中带有pos_str且不带有neg_str的
-def del_files(dir, pos_str='_____', neg_str='______'):
+def files_del(dir, pos_str='_____', neg_str='______'):
     file_lists = getFiles(dir)
     
     for i in range(len(file_lists)):
@@ -97,7 +107,40 @@ def augment_add_noise(source_dir, noise_dir, source_suff='_IAR_',dst_dir='', noi
             # 将wav_data转换为二进制数据写入文件
             f.writeframes(x.tostring())
             f.close()
-            
+ 
+# 找出列表里所有符合特定命名规则的多通道文件，如wav_suffs = ['_ch0.wav', '_ch1.wav', '_ch2.wav', '_ch3.wav']；
+# 然后以若干个为一组进行某种处理
+def micarray_intf(dir):
+    wav_suffs = ['_ch0.wav', '_ch1.wav', '_ch2.wav', '_ch3.wav']
+    wav_path_list_tmp = getFiles(dir, suff=".wav")
+    wav_path_list = []
+    
+    # 先去除掉后缀不对的文件
+    for i in range(len(wav_path_list_tmp)):
+        suff = wav_path_list_tmp[i][-8 : ]
+        if suff in wav_suffs:
+            wav_path_list.append(wav_path_list_tmp[i])
+    wav_path_list.sort()
+    
+    # 直接依次处理4条音频
+    for i in range(0, len(wav_path_list), 4):
+        # 先检查一下4条音频的名字
+        pref = wav_path_list[i][0 : -8]
+        if pref != wav_path_list[i+1][0: -8] or pref != wav_path_list[i+2][0: -8] or pref != wav_path_list[i+3][0: -8]:
+            print("name error! ", wav_path_list[i])
+            exit()
+        
+        # step 2: 调用信号处理程序处理这4个输入
+        wav_out_path = pref + '_out.wav'
+        cmd = D_MICARRAY_EXE_PATH + " "
+        for j in range(4):
+            cmd = cmd + '\"' + wav_path_list[i + j] + '\"' + " "
+        cmd = cmd + '\"' + wav_out_path + '\"'
+
+        print(wav_out_path)
+        print("")
+        os.system(cmd)
+
             
 # 切分文件，为了令文件名不冲突，可传入一个name_pref表示编号
 # 不补0。最后一段不要了
