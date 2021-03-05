@@ -65,7 +65,14 @@ def files_find(src_dir, suff_pos=[], suff_neg=[]):
     return all_files
         
     
-# 复制符合某种命名的文件到新的文件夹，考虑到重命名
+
+"""
+功能：复制符合某种命名的文件到新的文件夹，考虑到重命名
+示例：
+src_dir = '/home1/train_data/asr_alexa/'
+dst_dir = '/home1/train_data/asr_alexa/test1/'
+files_copy(src_dir, dst_dir, suff_pos=['_PC', '_out'], suff_neg=['_IAR_'], need_idx=True)
+"""
 def files_copy(src_dir, dst_dir, suff_pos=[], suff_neg=[], need_idx=False):
     all_files = files_find(src_dir, suff_pos, suff_neg)
     
