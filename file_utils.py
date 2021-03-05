@@ -8,6 +8,8 @@ Created on 2021.02.04
 
 # ------------------------------------------------------------------  intfs  ----------------------------------------------------------------------- #
 def getFiles(dir, suff='')                                                                                              # 获取文件列表
+def files_find(src_dir, suff_pos=[], suff_neg=[])                                                                       # 从文件夹获取符合要求的文件列表
+def files_copy(src_dir, dst_dir, suff_pos=[], suff_neg=[], need_idx=False)                                              # 文件重命名，考虑到重复
 def files_del(dir, pos_str='_____', neg_str='______')                                                                   # 批量删除文件
 def augment_add_noise(source_dir, noise_dir, source_suff='_IAR_',dst_dir='', noise_suff='nsout', SR=16000, times=1)     # 数据加噪声
 def micarray_intf(dir)                                                                                                  # 一个处理多通道文件的示例
@@ -34,6 +36,51 @@ def getFiles(dir, suff=''):
         return flist
     getFlist(dir, suff)
     return flist
+
+# 寻找文件夹中的文件，返回文件列表，满足列表中的所有条件。pos列表中是且的关系，neg是或的关系
+# 文件名需包含suff_pos所有，且不包含suff_neg中任意一个
+def files_find(src_dir, suff_pos=[], suff_neg=[]):    
+    # 先获取全部文件
+    all_files_tmp = getFiles(src_dir)
+    all_files = []
+    
+    if suff_pos == [] and suff_neg == []:
+        return all_files_tmp
+    
+    for i in range(len(all_files_tmp)):
+        is_desire = 1
+        for j in range(len(suff_pos)):
+            if all_files_tmp[i].find(suff_pos[j]) < 0:
+                is_desire = 0
+                break
+        if is_desire == 1:
+            
+            for j in range(len(suff_neg)):
+                if all_files_tmp[i].find(suff_neg[j]) >= 0:
+                    is_desire = 0
+                    break
+        if is_desire == 1:
+            all_files.append(all_files_tmp[i])
+            
+    return all_files
+        
+    
+# 复制符合某种命名的文件到新的文件夹，考虑到重命名
+def files_copy(src_dir, dst_dir, suff_pos=[], suff_neg=[], need_idx=False):
+    all_files = files_find(src_dir, suff_pos, suff_neg)
+    
+    if not os.path.exists(dst_dir):
+        os.mkdir(dst_dir)
+    
+    for i in range(len(all_files)):
+        _, filename = os.path.split(all_files[i]);
+        if need_idx == True:
+            filename = str(i) + "_" + filename
+        file_out_path = os.path.join(dst_dir, filename)
+        shutil.copyfile(all_files[i], file_out_path)
+
+
+
 
 # 批量删除带特定名称的文件。
 # 删除名字中带有pos_str且不带有neg_str的
