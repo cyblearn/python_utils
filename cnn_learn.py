@@ -136,3 +136,25 @@ input = torch.randn(1, 2, 6, 3)
 print(m(input))
 print('****************************************************')
 print(n(input))
+
+# -------------------------------------------------------------- torch.nn.Dropout与Dropout2d 算子  ----------------------------------------------------------------#
+"""
+softmax一般针对二维数据，每行表示一个样本，每列表示不同的维度。dim=0表示按列计算；dim=1表示按行计算。
+返回结果是一个与输入shape相同的张量，每个元素的取值范围在（0,1）区间。
+比如：
+输入：大小batch_size为4，类别数为6的向量
+batch_size = 4
+class_num = 6
+inputs = torch.randn(batch_size, class_num)
+看这篇博客：https://zhuanlan.zhihu.com/p/137791367
+"""
+batch_size = 4
+class_num = 6
+inputs = torch.randn(batch_size, class_num)
+for i in range(batch_size):
+    for j in range(class_num):
+        inputs[i][j] = (i + 1) * (j + 1)
+
+Softmax = torch.nn.Softmax(dim=1)
+probs = Softmax(inputs)
+print("probs:\n", probs)
