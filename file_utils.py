@@ -14,7 +14,7 @@ def files_del(dir, pos_str='_____', neg_str='______')                           
 def augment_add_noise(source_dir, noise_dir, source_suff='_IAR_',dst_dir='', noise_suff='nsout', SR=16000, times=1)     # 数据加噪声
 def micarray_intf(dir)                                                                                                  # 一个处理多通道文件的示例
 def split_audio(audio_path, dst_dir, dur=2, name_pref='', SR=16000, padding=False)                                      # 分割音频
-
+def txt2wav(txt_name, wav_name)                                                                                         # txt转wav
 # ------------------------------------------------------------------  funcs  ----------------------------------------------------------------------- #
 
 
@@ -232,3 +232,21 @@ def sox_downsample(src):
     os.system(cmd0)
     os.remove(src_name)
     os.rename(out_name, src_name)
+
+# txt转wav
+def txt2wav(txt_name, wav_name):
+    import numpy as np
+    import wave
+
+    f = open(txt_name, "r")
+    data = f.read().split()
+    data_np = np.array(data).astype(np.short)
+
+    wave_data = data_np.astype(np.short)
+    f = wave.open(wav_name, "wb")
+    f.setnchannels(1)
+    f.setsampwidth(2)
+    f.setframerate(16000)
+
+    f.writeframes(wave_data.tostring())
+    f.close()
