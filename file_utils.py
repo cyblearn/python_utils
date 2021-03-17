@@ -11,6 +11,7 @@ def getFiles(dir, suff='')                                                      
 def files_find(src_dir, suff_pos=[], suff_neg=[])                                                                       # 从文件夹获取符合要求的文件列表
 def files_copy(src_dir, dst_dir, suff_pos=[], suff_neg=[], need_idx=False)                                              # 文件重命名，考虑到重复
 def files_del(dir, pos_str='_____', neg_str='______')                                                                   # 批量删除文件
+def slowdown_ffmpeg(input_path, output_path)                                                                            # ffmpeg慢速处理
 def augment_add_noise(source_dir, noise_dir, source_suff='_IAR_',dst_dir='', noise_suff='nsout', SR=16000, times=1)     # 数据加噪声
 def micarray_intf(dir)                                                                                                  # 一个处理多通道文件的示例
 def split_audio(audio_path, dst_dir, dur=2, name_pref='', SR=16000, padding=False)                                      # 分割音频
@@ -195,6 +196,20 @@ def micarray_intf(dir):
         print("")
         os.system(cmd)
 
+"""
+慢速处理
+"""
+def slowdown_ffmpeg(input_path, output_path):
+    tmp_wav_path = input_path.replace(".wav", "_tmp.wav")
+    if os.path.exists(tmp_wav_path):
+        os.remove(tmp_wav_path)
+    
+    cmd1 = "ffmpeg -n -i " + input_path + " -filter:a \"atempo=0.6\" " + tmp_wav_path
+    cmd2 = "ffmpeg -n -i " + tmp_wav_path + " -filter:a \"atempo=0.6\" " + output_path
+    
+    os.system(cmd1)
+    os.system(cmd2)
+        
             
 # 切分文件，为了令文件名不冲突，可传入一个name_pref表示编号
 # 不补0。最后一段不要了
