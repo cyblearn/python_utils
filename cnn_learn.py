@@ -158,3 +158,47 @@ for i in range(batch_size):
 Softmax = torch.nn.Softmax(dim=1)
 probs = Softmax(inputs)
 print("probs:\n", probs)
+
+
+
+# --------------------------------------------------------------  循环网络部分  --------------------------------------------------------------- #
+# 看这篇文章：https://zhuanlan.zhihu.com/p/71732459
+# 这里要啰嗦一句，karpathy在RNN的前向中还计算了一个输出向量output vector，
+# 但根据RNN的原始公式，它的输出只有一个hidden_state，至于整个网络最后的output vector，
+# 是在hidden_state之后再接一个全连接层得到的，所以并不属于RNN的内容。
+# 包括pytorch和tf框架中，RNN的输出也只有hidden_state。理解这一点很重要。
+class RNN:
+  def __init__(self, hidden_size = 5, input_size=6):
+    self.W_hh = np.ones((hidden_size, hidden_size))
+    self.W_xh = np.ones((hidden_size, input_size))
+  
+  
+  def step(self, x, hidden):
+    # update the hidden state
+    # 只要给定了input_size和hidden的size，则W_hh及W_xh的size均已知
+    hidden = np.tanh(np.dot(self.W_hh, hidden) + np.dot(self.W_xh, x))
+    return hidden
+
+input_size = 6
+hidden_size = 5
+
+# x: [seq_len * input_size]
+x = np.ones((12, input_size))
+seq_len = x.shape[0]
+
+
+rnn = RNN(hidden_size, input_size)
+    
+
+# 初始化一个hidden_state，RNN中的参数没有包括hidden_state，
+# 只包括hidden_state对应的权重W和b，
+# 所以一般我们会手动初始化一个全零的hidden_state
+hidden_state = np.zeros((hidden_size))
+
+# 下面这个循环就是RNN的工作流程了，看到没有，每次输入的都是一个时间步长的数据，
+# 然后同一个hidden_state会在循环中反复输入到网络中。
+print(seq_len)
+for i in range(seq_len):
+    hidden_state = rnn.step(x[i, :], hidden_state)
+    print(i)
+    print(hidden_state)
