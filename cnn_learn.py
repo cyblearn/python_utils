@@ -202,3 +202,22 @@ for i in range(seq_len):
     hidden_state = rnn.step(x[i, :], hidden_state)
     print(i)
     print(hidden_state)
+
+# --------------------------------------------------------------  RNN的层数和输出  -----------------------------------------------------------  #
+# https://blog.csdn.net/qq_41295081/article/details/113752719
+# 输出：
+# ht：最后一个时间戳上面所有的 memory 状态
+# out：所有时间戳上的最后一个 memory 状态
+import torch
+import torch.nn as nn
+
+rnn = nn.RNN(input_size=100, hidden_size=20, num_layers=4)
+x = torch.randn(10, 3, 100)
+out, h_t = rnn(x)
+print(out.shape) # [10, 3, 20]
+print(h_t.shape) # [4, 3, 20]
+# 解释下例子的输入输出：
+# 其中RNN的参数为input_size即单个样本的尺寸大小为100,hidden_size即隐藏层中输出特征的大小为20，num_layers即纵向的隐藏层个数为4
+# input (seq_len, batch, input_size)---> (10，3，100)
+# output  (seq_len, batch, num_directions * hidden_size)--> (10，3，20)
+# h_t     (num_layers * num_directions, batch, hidden_siz) --> (4，3，20)
