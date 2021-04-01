@@ -32,8 +32,11 @@ typedef struct {
 } objNoiseLevel;
 
 
-/* srv是总频带的噪声信息
- * 返回当前帧的VAD情况
+/*
+ * 噪声追踪思路：
+ * a. 要么有新帧能量小于min_energy_second会直接更新min_energy_second，
+ * b. 如果当前输入能量一直未能超过min_energy_second，则第一次以1.5个窗后以temp_min_second更新min_energy_second，后续每1个窗更新一次min_energy_second。
+ * c. 如果有新帧能量小于min_energy_second，则会打断b直接按a更新。
  */
 int dios_ssp_share_noiselevel_process(objNoiseLevel* srv, float in_energy/* 当前帧时域点一阶范数平均 */)
 {
@@ -69,11 +72,6 @@ int dios_ssp_share_noiselevel_process(objNoiseLevel* srv, float in_energy/* 当�
         srv->min_hold_frame_second = (srv->min_win_len_second >> 1);
     }
 
-    /*
-     * a. 要么有新帧能量小于min_energy_second会直接更新min_energy_second，
-     * b. 否则第一次以1.5个窗后以temp_min_second更新min_energy_second，后续每1个窗更新一次min_energy_second。
-     * c. 如果有新帧能量小于min_energy_second，则会打断b直接按a更新。
-     */
     /* 最后的输出其实也是平滑后的结果 */
     srv->noise_level_second += srv->smoothfactor_second * (srv->min_energy_second - srv->noise_level_second);	
 
